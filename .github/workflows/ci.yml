@@ -27,7 +27,7 @@ jobs:
         run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
       - name: Run cron-holiday (fail on holiday)
         id: holiday
-        uses: ./
+        uses: $/
         with:
           holidays: ${{ steps.date.outputs.today }}
           timezone: UTC
@@ -58,7 +58,7 @@ jobs:
         run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
       - name: Run cron-holiday (multiple holidays)
         id: holiday
-        uses: ./
+        uses: $/
         with:
           holidays: 2026-01-01,${{ steps.date.outputs.today }},2026-12-25
           timezone: UTC
@@ -86,7 +86,7 @@ jobs:
         run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
       - name: Run cron-holiday (holidays with spaces)
         id: holiday
-        uses: ./
+        uses: $/
         with:
           holidays: 2026-01-01, ${{ steps.date.outputs.today }}, 2026-12-25
           timezone: UTC
@@ -111,7 +111,7 @@ jobs:
           persist-credentials: false
       - name: Run cron-holiday (non-holiday)
         id: holiday
-        uses: ./
+        uses: $/
         with:
           holidays: 2000-01-01,2000-12-25
           timezone: UTC
