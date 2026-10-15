@@ -1,0 +1,137 @@
+name: CI
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skip-on-holiday:
+    name: E2E - Skip on holiday
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Get today's date
+        id: date
+        run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+      - name: Run cron-holiday (fail on holiday)
+        id: holiday
+        uses: $/
+        with:
+          holidays: ${{ steps.date.outputs.today }}
+          timezone: UTC
+          fail-on-holiday: true
+        continue-on-error: true
+      - name: Assert failed and flagged holiday
+        env:
+          ON_HOLIDAY: ${{ steps.holiday.outputs.on_holiday }}
+          OUTCOME: ${{ steps.holiday.outcome }}
+        run: |
+          if [ "$ON_HOLIDAY" != "true" ] || [ "$OUTCOME" != "failure" ]; then
+            echo "❌ Did not fail on holiday as expected!" && exit 1
+          fi
+          echo "✅ Correctly failed on holiday."
+
+  multiple-holidays:
+    name: E2E - Multiple holidays
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Get today's date
+        id: date
+        run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+      - name: Run cron-holiday (multiple holidays)
+        id: holiday
+        uses: $/
+        with:
+          holidays: 2026-01-01,${{ steps.date.outputs.today }},2026-12-25
+          timezone: UTC
+      - name: Assert holiday detected
+        env:
+          ON_HOLIDAY: ${{ steps.holiday.outputs.on_holiday }}
+        run: |
+          if [ "$ON_HOLIDAY" != "true" ]; then
+            echo "❌ Did not detect holiday from multiple holidays!" && exit 1
+          fi
+          echo "✅ Correctly detected holiday from multiple holidays."
+
+  holidays-with-spaces:
+    name: E2E - Holidays with spaces
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Get today's date
+        id: date
+        run: echo "today=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+      - name: Run cron-holiday (holidays with spaces)
+        id: holiday
+        uses: $/
+        with:
+          holidays: 2026-01-01, ${{ steps.date.outputs.today }}, 2026-12-25
+          timezone: UTC
+      - name: Assert holiday detected
+        env:
+          ON_HOLIDAY: ${{ steps.holiday.outputs.on_holiday }}
+        run: |
+          if [ "$ON_HOLIDAY" != "true" ]; then
+            echo "❌ Did not detect holiday with spaces!" && exit 1
+          fi
+          echo "✅ Correctly detected holiday with spaces."
+
+  run-on-non-holiday:
+    name: E2E - Run on non-holiday
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run cron-holiday (non-holiday)
+        id: holiday
+        uses: $/
+        with:
+          holidays: 2000-01-01,2000-12-25
+          timezone: UTC
+      - name: Assert not a holiday
+        env:
+          ON_HOLIDAY: ${{ steps.holiday.outputs.on_holiday }}
+        run: |
+          if [ "$ON_HOLIDAY" = "true" ]; then
+            echo "❌ Incorrectly detected today as a holiday!" && exit 1
+          fi
+          echo "✅ Correctly did not detect today as a holiday."
+
+  are-we-good:
+    name: are-we-good
+    if: ${{ always() }}
+    needs: [skip-on-holiday, multiple-holidays, holidays-with-spaces, run-on-non-holiday]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: lowlydba/are-we-good@6b10e5f2697555fbaf7f8f37ce38d4454c954a4c # v1.2.2
+        with:
+          jobs: ${{ toJSON(needs) }}
