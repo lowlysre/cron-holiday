@@ -17,7 +17,7 @@ This tutorial will help you set up `cron-holiday` in your GitHub Actions workflo
      check-holiday:
        uses: lowlysre/cron-holiday@v1.0.0
        with:
-         holidays: "2025-01-01,2025-07-04,2025-12-25"
+         holidays: "2026-01-01,2026-07-03,2026-12-25"
          timezone: "America/New_York"
          fail-on-holiday: false
        id: holiday
@@ -100,18 +100,20 @@ You can set the holidays as a repository or organization level environment varia
 
 ## Default Holidays
 
-If you do not specify the `holidays` input, it defaults to the USA Federal Holidays for 2025:
+If you do not specify the `holidays` input, it defaults to the USA Federal Holidays for 2026 and 2027, using the observed date when a holiday falls on a weekend:
 
-- 2025-01-01 (New Year's Day)
-- 2025-01-20 (Martin Luther King, Jr. Day)
-- 2025-02-17 (Washington’s Birthday)
-- 2025-05-26 (Memorial Day)
-- 2025-06-19 (Juneteenth National Independence Day)
-- 2025-07-04 (Independence Day)
-- 2025-09-01 (Labor Day)
-- 2025-10-13 (Columbus Day)
-- 2025-11-11 (Veterans Day)
-- 2025-11-27 (Thanksgiving Day)
-- 2025-12-25 (Christmas Day)
-
+| Holiday | 2026 | 2027 |
+| --- | --- | --- |
+| New Year's Day | 2026-01-01 | 2027-01-01 |
+| Martin Luther King, Jr. Day | 2026-01-19 | 2027-01-18 |
+| Washington's Birthday | 2026-02-16 | 2027-02-15 |
+| Memorial Day | 2026-05-25 | 2027-05-31 |
+| Juneteenth National Independence Day | 2026-06-19 | 2027-06-18 |
+| Independence Day | 2026-07-03 | 2027-07-05 |
+| Labor Day | 2026-09-07 | 2027-09-06 |
+| Columbus Day | 2026-10-12 | 2027-10-11 |
+| Veterans Day | 2026-11-11 | 2027-11-11 |
+| Thanksgiving Day | 2026-11-26 | 2027-11-25 |
+| Christmas Day | 2026-12-25 | 2027-12-24 |
+| New Year's Day (2028, observed) | n/a | 2027-12-31 |
 You can override this by specifying your own list of dates in the `holidays` input.
